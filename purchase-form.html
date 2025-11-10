@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Purchase Form</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&family=Lobster&family=Inter:wght@400;600&display=swap" rel="stylesheet">
+
+  <!-- Remix Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+
+  <!-- Custom CSS -->
+  <link rel="stylesheet" href="purchase-style.css" />
+
+  <style>
+    body {
+      font-family: 'Inter', sans-serif;
+    }
+    .title-font {
+      font-family: 'Pacifico', cursive;
+    }
+    html, body {
+      width: 100vw !important;
+      min-height: 100vh !important;
+      height: 100vh !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      box-sizing: border-box;
+      overflow-x: hidden;
+    }
+    #purchase-success-modal {
+      position: fixed !important;
+      top: 0 !important;
+      left: 0 !important;
+      width: 100vw !important;
+      height: 100vh !important;
+      min-width: 100vw !important;
+      min-height: 100vh !important;
+      margin: 0 !important;
+      padding: 0 !important;
+      z-index: 9999 !important;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.4);
+      backdrop-filter: blur(6px);
+    }
+    #purchase-success-modal.show {
+      display: flex !important;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-4">
+  <script>
+    // Show shop name for Shopmanager
+    const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    if (user && user.role === 'admin' && user.branch) {
+      document.write('<div class="text-center text-lg font-bold text-indigo-700 mb-4">Shop: ' + user.branch + '</div>');
+    }
+  </script>
+  <!-- Success Modal Overlay (moved to very top for bulletproof coverage) -->
+  <div id="purchase-success-modal">
+    <div class="bg-white bg-opacity-95 rounded-2xl shadow-xl px-8 py-8 flex flex-col items-center max-w-[90vw]">
+      <div class="text-green-500 text-5xl mb-3"><i class="ri-checkbox-circle-fill"></i></div>
+      <div class="text-xl font-bold mb-2">Sent successfully!</div>
+      <div class="text-gray-600 mb-4">Your purchase has been submitted.</div>
+      <button id="purchase-success-ok" class="mt-2 px-6 py-2 bg-green-600 text-white rounded-lg font-semibold text-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-400">OK</button>
+    </div>
+  </div>
+  <!-- Header with Logout (fixed at top right, not affected by zoom) -->
+  <div class="w-full max-w-2xl flex justify-end mb-4 mx-auto" style="position:relative; z-index:10;">
+    <script>
+      const user2 = JSON.parse(sessionStorage.getItem('loggedInUser'));
+      if (user2 && user2.role === 'admin') {
+        document.write('<button onclick="window.location.href=\'shopmanager-decision.html\'" class="flex items-center text-sm text-blue-600 hover:text-blue-800 transition mr-4"><i class="ri-arrow-go-back-line mr-1"></i> Return</button>');
+      }
+    </script>
+    <button onclick="handleLogout()" class="flex items-center text-sm text-red-600 hover:text-red-800 transition">
+      <i class="ri-logout-box-r-line mr-1"></i> Logout
+    </button>
+  </div>
+
+  <div class="flex flex-col items-center justify-center min-h-screen w-full">
+    <div style="transform: scale(0.93); transform-origin: top center; width: 100%;">
+
+  <div class="w-full max-w-2xl mx-auto">
+    <!-- Title -->
+    <div class="text-center mb-6">
+      <h1 class="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text" style="font-family: 'Lobster', cursive;">
+         Purchase Form
+      </h1>
+      <p class="text-gray-600 mt-2 text-base sm:text-lg">Fill in the details to complete your purchase</p>
+    </div>
+
+    <!-- Message and Spinner -->
+    <div id="purchase-message" class="mb-4 text-center text-base font-semibold text-red-600"></div>
+    <div id="purchase-spinner" class="mb-4 flex justify-center hidden">
+      <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <span class="ml-3 text-indigo-600">Processing...</span>
+    </div>
+
+    <!-- Form Card -->
+    <div class="bg-white p-6 sm:p-6 rounded-2xl shadow-lg w-full">
+      <form id="purchaseForm" class="space-y-5 sm:space-y-6">
+        <script>
+          if (user && user.role === 'admin' && user.branch) {
+            document.write('<input type="hidden" name="shopName" value="' + user.branch + '">');
+          }
+        </script>
+
+        <!-- Shop Name -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Shop Name</label>
+          <div class="relative">
+            <input type="text" id="shopName" class="form-input pr-10 w-full" readonly />
+            <i class="ri-store-2-line absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+          </div>
+          <p id="shopNameError" class="mt-1 text-sm text-red-500 min-h-[1.25rem]"></p>
+        </div>
+
+        <!-- Location -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Location</label>
+          <div class="relative">
+            <input type="text" id="location" class="form-input pr-10 w-full" readonly />
+            <i class="ri-map-pin-line absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+          </div>
+          <p id="locationError" class="mt-1 text-sm text-red-500 min-h-[1.25rem]"></p>
+        </div>
+
+        <!-- Client Name -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Client Name</label>
+          <div class="relative">
+            <select id="clientName" class="form-input pr-10 appearance-none w-full">
+              <option value="">Enter client name</option>
+            </select>
+            <i class="ri-user-line absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+          </div>
+          <p id="clientNameError" class="mt-1 text-sm text-red-500 min-h-[1.25rem]"></p>
+        </div>
+
+        <!-- Phone Number -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Phone Number</label>
+          <div class="relative">
+            <input type="text" id="phoneNumber" class="form-input pr-10 w-full" readonly />
+            <i class="ri-phone-line absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+          </div>
+          <p id="phoneNumberError" class="mt-1 text-sm text-red-500 min-h-[1.25rem]"></p>
+        </div>
+
+        <!-- MULTIPLE PRODUCTS SECTION -->
+        <div id="products-section" class="space-y-4">
+          <label class="block text-sm font-medium text-gray-700 mb-1">Products</label>
+          <!-- Product Row Template (JS will clone and populate) -->
+          <div class="product-entry grid grid-cols-1 sm:grid-cols-4 gap-4 items-center bg-gray-50 p-3 rounded-md shadow-sm">
+            <div>
+              <select name="purchasedItem" class="form-input w-full product-select">
+                <option value="">Select product</option>
+                <!-- JS will populate options -->
+              </select>
+              <p class="product-error text-xs text-red-500 min-h-[1.25rem]"></p>
+            </div>
+            <div class="variant-container">
+              <!-- JS will insert variant/unit dropdown or label here -->
+              <p class="variant-error text-xs text-red-500 min-h-[1.25rem]"></p>
+            </div>
+            <div class="flex items-center gap-2 amount-container">
+              <label class="text-sm text-gray-700 amount-label">Quantity</label>
+              <input type="number" name="bucketAmount" value="1" min="1" class="w-16 border rounded text-center" />
+              <button type="button" class="remove-product text-red-500 text-lg" title="Remove product">&times;</button>
+              <p class="amount-error text-xs text-red-500 min-h-[1.25rem]"></p>
+            </div>
+            <div class="col-span-1 sm:col-span-4 mt-2">
+              <label class="block text-xs font-medium text-green-700 mb-1">Money</label>
+              <input type="text" name="productMoney" placeholder="Enter amount (e.g. 1000RWF)" class="form-input w-full" style="text-transform:uppercase;" />
+              <p class="productMoneyError text-xs text-red-500 min-h-[1.25rem]"></p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Add Product Button -->
+        <div class="mt-2 mb-4">
+          <button type="button" onclick="addProduct()" class="text-sm text-indigo-600 hover:underline">
+            + Add Another Product
+          </button>
+        </div>
+
+        <!-- Upload Product Invoice -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Product Invoice</label>
+          <div class="relative rounded-md p-2">
+            <input type="file" id="invoiceUpload" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" class="absolute inset-0 opacity-0 cursor-pointer z-10" />
+            <div class="form-input pr-10 flex items-center space-x-2 text-gray-500 pointer-events-none">
+              <i class="ri-upload-cloud-line text-xl"></i>
+              <span id="uploadLabel">Choose file (PDF, JPG, PNG)</span>
+            </div>
+          </div>
+          <p id="invoiceError" class="mt-1 text-sm text-red-500 min-h-[1.25rem]"></p>
+        </div>
+
+        <!-- Upload Product Purchased Invoice (NEW) -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Product Purchased Invoice</label>
+          <div class="relative rounded-md p-2">
+            <input type="file" id="purchasedInvoiceUpload" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" class="absolute inset-0 opacity-0 cursor-pointer z-10" />
+            <div class="form-input pr-10 flex items-center space-x-2 text-gray-500 pointer-events-none">
+              <i class="ri-upload-cloud-line text-xl"></i>
+              <span id="purchasedUploadLabel">Choose file (PDF, JPG, PNG)</span>
+            </div>
+          </div>
+          <p id="purchasedInvoiceError" class="mt-1 text-sm text-green-700 min-h-[1.25rem]"></p>
+        </div>
+
+        <!-- Invoice Number -->
+        <div>
+          <label for="invoiceNumber" class="block text-sm font-medium text-gray-700 mb-1">Invoice Number</label>
+          <div class="relative">
+            <input 
+              type="text" 
+              id="invoiceNumber" 
+              class="form-input pr-10 w-full" 
+              placeholder="Enter invoice number" 
+              pattern="[0-9]*" 
+              inputmode="numeric"
+              onkeypress="return event.charCode >= 48 && event.charCode <= 57"
+              oninput="document.getElementById('invoiceNumberError').textContent = ''"
+            />
+            <i class="ri-file-list-line absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 text-lg"></i>
+          </div>
+          <p id="invoiceNumberError" class="mt-1 text-sm text-red-500 min-h-[1.25rem]"></p>
+        </div>
+
+        <!-- Comment -->
+        <div>
+          <label for="comment" class="block text-sm font-medium text-gray-700 mb-1">Comment (Optional)</label>
+          <div class="relative">
+            <textarea id="comment" rows="3" class="form-input pr-10 w-full" placeholder="Add any relevant comments about the purchase..."></textarea>
+            <i class="ri-message-2-line absolute right-3 top-3 text-gray-400 text-lg"></i>
+          </div>
+          <p id="commentError" class="mt-1 text-sm text-red-500 min-h-[1.25rem]"></p>
+        </div>
+
+        <!-- Date Time -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">Date & Time</label>
+          <input type="text" id="dateTime" class="form-input w-full" readonly />
+          <p id="dateTimeError" class="mt-1 text-sm text-red-500 min-h-[1.25rem]"></p>
+        </div>
+
+        <!-- Submit Button -->
+        <button type="submit" class="w-full bg-indigo-600 text-white py-2 px-4 rounded-lg hover:bg-indigo-700 transition duration-200">
+          Submit
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function handleLogout() {
+      const body = document.body;
+      body.innerHTML = `
+        <div class="flex items-center justify-center min-h-screen bg-gray-100">
+          <div class="text-center">
+            <div class="w-16 h-16 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <h2 class="text-lg font-semibold text-gray-700">Logging out...</h2>
+          </div>
+        </div>
+      `;
+      setTimeout(() => {
+        sessionStorage.removeItem("loggedInUser");
+        sessionStorage.setItem('logoutMessage', 'Logging out...');
+        window.location.href = 'loading.html';
+      }, 1200);
+    }
+
+    function addProduct() {
+      const section = document.getElementById('products-section');
+      const template = section.querySelector('.product-entry');
+      const clone = template.cloneNode(true);
+
+      const count = section.querySelectorAll('.product-entry').length;
+      clone.querySelectorAll('input[type=radio]').forEach(r => {
+        r.name = 'quantity_' + count;
+        r.checked = false;
+      });
+
+      clone.querySelector('select').selectedIndex = 0;
+      clone.querySelector('input[type=number]').value = 1;
+
+      clone.querySelector('.remove-product').addEventListener('click', () => {
+        clone.remove();
+      });
+
+      section.appendChild(clone);
+    }
+
+    // Initial remove button
+    document.querySelector('.remove-product').addEventListener('click', function () {
+      this.closest('.product-entry').remove();
+    });
+  </script>
+  <script src="data.js"></script>
+  <script src="purchase-script.js"></script>
+  </div>
+  </div>
+</body>
+</html>

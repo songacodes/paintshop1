@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+    <script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
+    <link rel="stylesheet" href="">
+</head>
+<body class="bg-gray-100 flex">
+
+    <!-- Sidebar -->
+    <aside class="w-56 h-screen fixed top-0 left-0 bg-white shadow flex flex-col justify-between p-4 z-10">
+        <div>
+            <h1 class="text-lg font-bold bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 text-transparent bg-clip-text mb-6">Admin</h1>
+            <nav class="flex flex-col gap-3">
+                <a href="#transactions-section" class="flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition text-base"><i class="ri-file-list-3-line"></i> Transactions</a>
+                <a href="#users-section" class="flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition text-base"><i class="ri-user-line"></i> Users</a>
+                <a href="#shops-section" class="flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition text-base"><i class="ri-building-line"></i> Shops</a>
+                <a href="#clients-section" class="flex items-center gap-2 text-indigo-700 hover:text-indigo-900 transition text-base"><i class="ri-group-line"></i> Clients</a>
+            </nav>
+        </div>
+        <button id="logoutBtn" class="flex items-center text-red-600 hover:text-red-800 transition text-base" onclick="logout()">
+            <i class="ri-logout-box-r-line mr-1"></i> Logout
+        </button>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="ml-56 p-4 w-full overflow-y-auto">
+        <!-- Branch Form Section -->
+        <section id="branch-form-section" class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="text-lg font-semibold mb-2 text-indigo-700">Add New Shop</h2>
+            <form id="branch-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Shop Name</label>
+                        <input type="text" id="branch-name" class="w-full border rounded px-3 py-2 text-sm" placeholder="Enter shop name" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Shop Location</label>
+                        <input type="text" id="branch-location" class="w-full border rounded px-3 py-2 text-sm" placeholder="Enter shop location" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Shop User Password</label>
+                        <input type="password" id="branch-user-password" class="w-full border rounded px-3 py-2 text-sm" placeholder="Enter shop user password" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Shop Admin Username</label>
+                        <input type="text" id="branch-admin-username" class="w-full border rounded px-3 py-2 text-sm" placeholder="Enter admin username (Shop Manager)" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Shop Admin Password</label>
+                        <input type="password" id="branch-admin-password" class="w-full border rounded px-3 py-2 text-sm" placeholder="Enter admin password" />
+                    </div>
+                </div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">Add Shop</button>
+            </form>
+        </section>
+
+        <!-- Client Form Section -->
+        <section id="client-form-section" class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="text-lg font-semibold mb-2 text-indigo-700">Add New Client</h2>
+            <form id="client-form" class="space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label for="client-branch" class="block text-sm font-medium text-gray-700">Assign to Shop</label>
+                        <select id="client-branch" class="w-full border rounded px-3 py-2 text-sm">
+                            <option value="">Select a shop</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Client Name</label>
+                        <input type="text" id="client-name" class="w-full border rounded px-3 py-2 text-sm" placeholder="Enter client name" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-1">Phone Number</label>
+                        <input type="text" id="client-phone" class="w-full border rounded px-3 py-2 text-sm" placeholder="Enter phone number" />
+                    </div>
+                </div>
+                <button type="submit" class="bg-indigo-600 text-white px-4 py-2 rounded text-sm hover:bg-indigo-700">Add Client</button>
+            </form>
+        </section>
+
+        <!-- Client Import Section -->
+        <section id="client-import-section" class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="text-lg font-semibold mb-2 text-indigo-700">Import Clients from Excel</h2>
+            <div class="bg-gray-50 p-4 rounded-lg shadow-inner mb-4">
+                <p class="text-sm text-gray-600 mb-3">
+                    Upload an Excel file (.xlsx, .xls, .csv) containing client data. The sheet should have columns for <b>Client Name</b>, <b>Phone Number</b>, and <b>Shop Name</b> or <b>ShopID</b>.
+                </p>
+                <div class="flex items-center space-x-4">
+                    <input type="file" id="client-import-file" accept=".xlsx,.xls,.csv" class="block w-full text-sm text-gray-500
+                        file:mr-4 file:py-2 file:px-4
+                        file:rounded-md file:border-0
+                        file:text-sm file:font-semibold
+                        file:bg-indigo-50 file:text-indigo-700
+                        hover:file:bg-indigo-100"/>
+                    <button id="import-clients-btn" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                        <i class="ri-upload-line mr-2"></i> Import Clients
+                    </button>
+                </div>
+                <div id="import-status-message" class="mt-3 text-sm font-medium"></div>
+                <div id="import-loading-spinner" class="hidden mt-3 text-center">
+                    <div class="w-8 h-8 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
+                    <p class="text-indigo-600 mt-2">Importing clients...</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- Transactions Section -->
+        <section id="transactions-section" class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="text-lg font-semibold mb-2 text-pink-700">All Transactions</h2>
+            <div class="flex flex-wrap justify-between gap-3 mb-3">
+                <input id="transaction-search-input" type="text" placeholder="Search transactions..." class="border rounded px-2 py-1 w-full md:w-1/3 text-sm" />
+                <div class="flex items-center gap-2">
+                    <label class="font-semibold text-sm">Sort transactions by:</label>
+                    <select id="transaction-sort-dropdown" class="border rounded px-2 py-1 text-sm">
+                        <option value="date">Date</option>
+                        <option value="shop">Shop</option>
+                        <option value="alpha">Client Name</option>
+                    </select>
+                    <select id="transaction-sort-order" class="border rounded px-2 py-1 text-sm">
+                        <option value="desc" selected>Descending</option>
+                        <option value="asc">Ascending</option>
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm whitespace-nowrap">
+                    <thead>
+                        <tr class="bg-gray-200 w-full">
+                            <th class="p-2 min-w-[150px]">Shop</th>
+                            <th class="p-2 min-w-[150px]">Client</th>
+                            <th class="p-2 min-w-[120px]">Phone</th>
+                            <th class="p-2 min-w-[150px]">Item</th>
+                            <th class="p-2 min-w-[100px]">Variant/Type</th>
+                            <th class="p-2 min-w-[100px]">Units</th>
+                            <th class="p-2 min-w-[100px]">Quantity</th>
+                            <th class="p-2 min-w-[100px]">Money</th>
+                            <th class="p-2 min-w-[180px]">Date</th>
+                            <th class="p-2 min-w-[200px]">Product Invoice</th>
+                            <th class="p-2 min-w-[200px]">Product Purchased Invoice</th>
+                            <th class="p-2 min-w-[120px]">Invoice No.</th>
+                            <th class="p-2 min-w-[200px]">Comment</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactions-table-body">
+                        <!-- Transaction rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+            <br><br>
+            <!-- Excel Export Section (Moved here) -->
+            <div class="mt-6 border-t pt-4">
+                <h3 class="text-lg font-semibold mb-4 text-indigo-700">Export Transactions</h3>
+                <div class="space-y-4">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Shop Filter</label>
+                            <select id="excel-branch-filter" class="w-full border rounded px-3 py-2 text-sm">
+                                <option value="">All Shops</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Date From</label>
+                            <input type="date" id="excel-date-from" class="w-full border rounded px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Date To</label>
+                            <input type="date" id="excel-date-to" class="w-full border rounded px-3 py-2 text-sm" />
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium mb-1">Client Filter</label>
+                            <input type="text" id="excel-client-filter" class="w-full border rounded px-3 py-2 text-sm" placeholder="Filter by client name" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium mb-2">Select Columns to Export</label>
+                        <div class="flex flex-wrap gap-4">
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="shopName" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Shop Name</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="clientName" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Client</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="phoneNumber" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Phone</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="purchasedItem" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Item</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="variant/type" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Variant/Type</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="units" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Units</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="quantity" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Quantity</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="money" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Money</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="dateTime" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Date</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="invoiceFileName" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Product Invoice File Name</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="purchasedInvoiceFileName" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Product Purchased Invoice File Name</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="invoiceNumber" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Invoice No.</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="checkbox" name="excel-columns" value="comment" checked class="form-checkbox">
+                                <span class="ml-2 text-sm text-gray-700">Comment</span>
+                            </label>
+                        </div>
+                    </div>
+                    <div class="flex gap-4">
+                        <button id="preview-export-btn" class="bg-blue-600 text-white px-4 py-2 rounded text-sm hover:bg-blue-700">Preview Export</button>
+                        <button id="download-excel-btn" class="bg-green-600 text-white px-4 py-2 rounded text-sm hover:bg-green-700" disabled>Download Excel</button>
+                        <button id="clear-filters-btn" class="bg-gray-500 text-white px-4 py-2 rounded text-sm hover:bg-gray-600">Clear Filters</button>
+                    </div>
+                    <div id="export-preview" class="hidden">
+                        <h3 class="text-lg font-semibold mt-4 mb-2">Export Preview (<span id="preview-count">0</span> records)</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full divide-y divide-gray-300 border border-gray-300 text-sm">
+                                <thead class="border-b border-gray-300">
+                                    <tr id="preview-header" class="bg-gray-100 w-full">
+                                        <!-- Preview headers will be inserted here -->
+                                    </tr>
+                                </thead>
+                                <tbody id="preview-body" class="bg-white divide-y divide-gray-200">
+                                    <!-- Preview rows will be inserted here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Users Section -->
+        <section id="users-section" class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="text-lg font-semibold mb-2 text-indigo-700">Users</h2>
+            <div class="flex flex-wrap justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2">
+                    <label class="font-semibold text-sm">Sort users by:</label>
+                    <select id="user-sort-dropdown" class="border rounded px-2 py-1 text-sm">
+                        <option value="username">Username</option>
+                        <option value="role">Role</option>
+                        <option value="shop">Shop</option>
+                        <option value="createdAt">Created Date</option>
+                    </select>
+                    <select id="user-sort-order" class="border rounded px-2 py-1 text-sm">
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="bg-gray-200 w-full" width="">
+                            <th class="p-2">Username</th>
+                            <th class="p-2">Role</th>
+                            <th class="p-2">Shop</th>
+                            <th class="p-2">Created At</th>
+                            <th class="p-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="users-table-body">
+                        <!-- User rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Shops Section -->
+        <section id="shops-section" class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="text-lg font-semibold mb-2 text-indigo-700">Shops</h2>
+            <div class="flex flex-wrap justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2">
+                    <label class="font-semibold text-sm">Sort Shops by:</label>
+                    <select id="branch-sort-dropdown" class="border rounded px-2 py-1 text-sm">
+                        <option value="name">Name</option>
+                    </select>
+                    <select id="branch-sort-order" class="border rounded px-2 py-1 text-sm">
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="bg-gray-200 w-full">
+                            <th class="p-2">Name</th>
+                            <th class="p-2">Location</th>
+                            <th class="p-2">ID</th>
+                            <th class="p-2">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="branches-table-body">
+                        <!-- Branch rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Clients Section -->
+        <section id="clients-section" class="bg-white p-4 rounded-xl shadow mb-6">
+            <h2 class="text-lg font-semibold mb-2 text-indigo-700">Clients</h2>
+            <div class="flex flex-wrap justify-between gap-3 mb-3">
+                <div class="flex items-center gap-2">
+                    <label class="font-semibold text-sm">Sort clients by:</label>
+                    <select id="client-sort-dropdown" class="border rounded px-2 py-1 text-sm">
+                        <option value="name">Name</option>
+                        <option value="phone">Phone</option>
+                        <option value="shop">Shop</option>
+                    </select>
+                    <select id="client-sort-order" class="border rounded px-2 py-1 text-sm">
+                        <option value="asc">Ascending</option>
+                        <option value="desc">Descending</option>
+                    </select>
+                </div>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left text-sm">
+                    <thead>
+                        <tr class="bg-gray-200 w-full">
+                            <th class="p-2">Name</th>
+                            <th class="p-2">Phone</th>
+                            <th class="p-2">Shop</th>
+                        </tr>
+                    </thead>
+                    <tbody id="clients-table-body">
+                        <!-- Client rows will be inserted here -->
+                    </tbody>
+                </table>
+            </div>
+        </section>
+    </main>
+
+    <style>
+        /* Smooth scrolling for anchor links */
+        html {
+            scroll-behavior: smooth;
+        }
+        
+        /* Add some padding to account for fixed header */
+        section {
+            scroll-margin-top: 2rem;
+        }
+    </style>
+
+    <script>
+        // Check login status
+        const loggedInUser = JSON.parse(sessionStorage.getItem('loggedInUser'));
+        if (!loggedInUser || loggedInUser.role !== 'master-admin') {
+            window.location.href = 'login.html';
+        }
+    </script>
+    <script src="data.js"></script>
+    <script>
+    function logout() {
+        sessionStorage.removeItem('loggedInUser');
+        sessionStorage.setItem('logoutMessage', 'You have been logged out.');
+        window.location.href = 'loading.html';
+    }
+    </script>
+    <script src="master-admin.js"></script>
+</body>
+</html> 

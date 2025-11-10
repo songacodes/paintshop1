@@ -1,0 +1,61 @@
+.form-input, .form-select {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  border: 1px solid #ccc;
+  border-radius: 0.5rem;
+  outline: none;
+  transition: border-color 0.2s ease-in-out;
+}
+
+.form-input:focus, .form-select:focus {
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+}
+
+.custom-file-upload {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  background-color: #f3f4f6;
+  border: 2px dashed #cbd5e1;
+  border-radius: 0.75rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.custom-file-upload:hover {
+  background-color: #e0e7ff;
+  border-color: #6366f1;
+}
+
+.custom-file-upload input[type="file"] {
+  display: none;
+}
+
+/* Remove number input arrows for Chrome, Safari, Edge */
+input[type=number].remove-spinner::-webkit-outer-spin-button,
+input[type=number].remove-spinner::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Remove number input arrows for Firefox */
+input[type=number].remove-spinner {
+  -moz-appearance: textfield;
+}
+
+/* Product Invoice field styles */
+.bg-blue-50 {
+  background-color: #eff6ff;
+}
+.border-blue-300 {
+  border-color: #93c5fd;
+}
+/* Product Purchased Invoice field styles */
+.bg-green-50 {
+  background-color: #ecfdf5;
+}
+.border-green-300 {
+  border-color: #6ee7b7;
+}

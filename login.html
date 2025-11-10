@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Paint Shop Management System</title>
+  <link rel="stylesheet" href="style.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Pacifico&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;700&display=swap" rel="stylesheet" />
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.5.0/fonts/remixicon.css" rel="stylesheet" />
+  <style>
+    /* Removed SVG and @keyframes for loading animation as it will now be handled by loading.html */
+    .hidden {
+      display: none;
+    }
+
+    /* Consistent error box styling */
+    #loginError {
+      margin-top: 0.75rem;
+      padding: 0.5rem;
+      background-color: #ffeaea;
+      border: 1px solid #f87171;
+      color: #b91c1c;
+      border-radius: 0.375rem;
+      font-size: 0.875rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="login-box">
+      <div class="header">
+        <h1 class="logo">PSMS</h1>
+        <p class="subtext">Paint Shop Management System</p>
+      </div>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="username">Shop Username</label>
+          <input type="text" id="username" placeholder="Enter your username" />
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <div class="password-wrapper">
+            <input type="password" id="password" placeholder="Enter your password" />
+            <span class="toggle-password" id="togglePassword"></span>
+          </div>
+        </div>
+
+        <button type="submit" class="login-button">Login</button>
+      </form>
+
+      <!-- Removed loadingSpinner HTML element as requested -->
+
+      <div class="footer-link">
+        <a href="#">Forgot password?</a>
+      </div>
+    </div>
+
+    <footer class="footer">
+      © 2025 Paint Shop Management System. All rights reserved.
+    </footer>
+  </div>
+
+<script src="data.js"></script> <!-- THIS LINE MUST BE HERE -->
+  <script>
+    // Console log to check if DataAPI is available right before use
+    console.log("Checking DataAPI availability:", typeof DataAPI !== 'undefined' && typeof DataAPI.loginUser === 'function' ? "DataAPI.loginUser is defined" : "DataAPI.loginUser is NOT defined");
+
+    document.addEventListener('DOMContentLoaded', () => {
+        const loginForm = document.getElementById('loginForm');
+        const usernameInput = document.getElementById('username');
+        const passwordInput = document.getElementById('password');
+        const togglePasswordSpan = document.getElementById('togglePassword');
+
+        // Check for logout message on page load
+        const logoutMessage = sessionStorage.getItem('logoutMessage');
+        if (logoutMessage && logoutMessage !== 'Logging out...') {
+            showError(logoutMessage);
+        }
+        sessionStorage.removeItem('logoutMessage'); // Always clear it after displaying or skipping
+
+        // Add event listener for password toggle
+        if (togglePasswordSpan) {
+            togglePasswordSpan.addEventListener('click', togglePasswordVisibility);
+        }
+
+        loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+
+            const username = usernameInput.value.trim();
+            const password = passwordInput.value.trim();
+            console.log('Login attempt for username:', username);
+            
+            clearErrors(); // Clear previous errors
+
+        if (username === "" || password === "") {
+            showError("Please enter both username and password.");
+            document.querySelector('.login-button').disabled = false;
+            return;
+        }
+
+            document.querySelector('.login-button').disabled = true;
+
+            try {
+                // Call the loginUser API from DataAPI
+                const userData = await DataAPI.loginUser(username, password);
+                console.log('Login successful. User Data:', userData);
+
+                sessionStorage.setItem('loggedInUser', JSON.stringify(userData));
+                sessionStorage.setItem('loginRoleRedirect', userData.role.toLowerCase());
+
+        window.location.href = 'loading.html';
+
+            } catch (error) {
+                console.error('Login error:', error);
+                let msg = error.message || "An error occurred during login. Please try again.";
+                if (msg.includes('Invalid username or password')) {
+                    msg = "Invalid username or password. Please check your credentials.";
+                } else if (msg.includes('Failed to fetch')) {
+                    msg = "Could not connect to the server. Please try again later.";
+                }
+                showError(msg);
+                document.querySelector('.login-button').disabled = false;
+            }
+        });
+    });
+
+    function togglePasswordVisibility() {
+        const passwordField = document.getElementById('password');
+        const toggleIcon = document.getElementById('togglePassword'); 
+        if (passwordField.type === 'password') {
+            passwordField.type = 'text';
+            toggleIcon.innerHTML = '<i class="ri-eye-off-line"></i>'; 
+        } else {
+            passwordField.type = 'password';
+            toggleIcon.innerHTML = '<i class="ri-eye-line"></i>'; 
+        }
+    }
+
+    function showError(message) {
+        let errorBox = document.getElementById('loginError');
+        if (!errorBox) {
+            errorBox = document.createElement('div');
+            errorBox.id = 'loginError';
+            errorBox.className = 'error-box';
+            const form = document.getElementById('loginForm');
+            form.insertAdjacentElement('afterend', errorBox);
+        }
+        errorBox.textContent = message;
+
+        setTimeout(() => {
+            clearErrors();
+        }, 4000);
+    }
+
+    function clearErrors() {
+        const errorBox = document.getElementById('loginError');
+        if (errorBox) {
+            errorBox.remove();
+        }
+    }
+  </script>
+
+
+</body>
+</html>

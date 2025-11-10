@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Shop Manager Decision</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <style>
+    body { background: #f3f4f6; }
+    .option-card:hover { box-shadow: 0 8px 32px rgba(67,56,202,0.12); transform: translateY(-2px) scale(1.03); }
+    .option-card { transition: box-shadow 0.2s, transform 0.2s; }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center bg-gray-100">
+  <!-- Logout Button Top Right -->
+  <div class="w-full flex justify-end items-center px-6 pt-6 absolute top-0 left-0 z-20">
+    <button onclick="logout()" class="flex items-center text-sm text-red-600 hover:text-red-800 transition bg-white rounded-lg px-4 py-2 shadow">
+      <i class="ri-logout-box-r-line mr-1"></i> Logout
+    </button>
+  </div>
+  <div class="w-full max-w-xl mx-auto mt-12">
+    <div id="shop-header" class="text-center mb-8">
+      <div class="text-2xl font-bold text-indigo-700" id="shop-name-display">Shop: ...</div>
+      <div class="text-gray-500 text-sm mt-1">Welcome, Shopmanager! Please choose an action:</div>
+    </div>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+      <div id="purchase-form-option" class="option-card cursor-pointer bg-white rounded-xl shadow-md p-8 flex flex-col items-center border-2 border-transparent hover:border-green-400">
+        <div class="text-green-500 text-5xl mb-3"><i class="ri-shopping-cart-2-line"></i></div>
+        <div class="text-lg font-semibold mb-1">Purchase Form</div>
+        <div class="text-gray-500 text-sm">Record a new purchase for your shop</div>
+      </div>
+      <div id="shop-management-option" class="option-card cursor-pointer bg-white rounded-xl shadow-md p-8 flex flex-col items-center border-2 border-transparent hover:border-indigo-400">
+        <div class="text-indigo-500 text-5xl mb-3"><i class="ri-store-2-line"></i></div>
+        <div class="text-lg font-semibold mb-1">Shop Management</div>
+        <div class="text-gray-500 text-sm">Manage your shop's clients and transactions</div>
+      </div>
+    </div>
+    <div id="decision-loading" class="hidden flex flex-col items-center mt-10">
+      <div class="w-12 h-12 border-4 border-indigo-500 border-t-transparent rounded-full animate-spin"></div>
+      <div class="text-indigo-700 font-semibold mt-4">Loading...</div>
+    </div>
+  </div>
+  <script>
+    // Show shop name from logged in user
+    const user = JSON.parse(sessionStorage.getItem('loggedInUser'));
+    if (user && user.branch) {
+      document.getElementById('shop-name-display').textContent = 'Shop: ' + user.branch;
+    }
+    // Option click handlers
+    function showLoadingAndRedirect(url) {
+      document.querySelector('.grid').classList.add('hidden');
+      document.getElementById('decision-loading').classList.remove('hidden');
+      setTimeout(() => { window.location.href = url; }, 1200);
+    }
+    document.getElementById('purchase-form-option').onclick = function() {
+      showLoadingAndRedirect('purchase-form.html');
+    };
+    document.getElementById('shop-management-option').onclick = function() {
+      showLoadingAndRedirect('branch-admin.html');
+    };
+    function logout() {
+      sessionStorage.removeItem('loggedInUser');
+      sessionStorage.setItem('logoutMessage', 'Logging out...');
+      window.location.href = 'loading.html';
+    }
+  </script>
+</body>
+</html> 
